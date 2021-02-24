@@ -126,22 +126,3 @@ task codeCoverageReport(type: JacocoReport) {
         true
     }
 }
-
-// task codeCoverageReport(type: JacocoReport) {
-//     dependsOn(copyJavaClassFiles)
-//     dependsOn(extractBallerinaClassFiles)
-//     executionData executeDataDirectory
-    
-//     additionalClassDirs files(sourceClassFiles)
-
-//     reports {
-//         xml.enabled = true
-//         html.enabled = true
-//         xml.destination = new File("${buildDir}/reports/jacoco/report.xml")
-//         html.destination = new File("${buildDir}/reports/jacoco/report.html")
-//     }
-
-//     onlyIf = {
-//         true
-//     }
-// }
