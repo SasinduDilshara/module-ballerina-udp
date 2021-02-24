@@ -103,11 +103,22 @@ task build {
 
 def classFilesArray = []
 
+task copyClassFilePaths {
+    dependsOn('mime-ballerina:extractBallerinaClassFiles')
+
+    subprojects.forEach { subproject -> 
+        if(subproject.name != "udp-test-utils") {
+            fileTree("${subproject.buildDir}/classes").matching {
+            exclude '**/test/*'
+            exclude '**/module-info.class'
+            include '**/*.class'
+        }.each { file -> classFilesArray.push(file) }
+        }
+        
+    }
+}
+
 task codeCoverageReport(type: JacocoReport) {
-    dependsOn('udp-ballerina:extractBallerinaClassFiles')
-
-    subprojects.each{ subproject -> classFilesArray.push("${subproject.buildDir}/classes") }
-
     executionData fileTree(project.rootDir.absolutePath).include("**/target/cache/tests_cache/coverage/ballerina.exec")
     additionalClassDirs files(classFilesArray)
     
