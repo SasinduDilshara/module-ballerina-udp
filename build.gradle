@@ -101,36 +101,20 @@ task build {
     dependsOn('udp-ballerina:build')
 }
 
-def nativeClassesDirectory = "${project.rootDir.absolutePath}/udp-native/build/classes"
-def ballerinaJarsDirectory = "${project.rootDir.absolutePath}/udp-ballerina/target/cache/ballerina/udp/*/java11"
-def executeDataDirectory = "${project.rootDir.absolutePath}/udp-ballerina/target/cache/tests_cache/coverage/ballerina.exec"
-
-def sourceClassFiles= []
-
-task copyJavaClassFiles(type: Copy) {
-    fileTree("${nativeClassesDirectory}").matching {
-        exclude '**/test/*'
-        exclude '**/module-info.class'
-        include '**/*.class'
-    }.each { file -> sourceClassFiles.push(file) }
-}
-
-task extractBallerinaClassFiles(type: Copy) {
-    fileTree("${ballerinaJarsDirectory}").include("**/*.zip").forEach { jar ->
-        zipTree(jar).matching {
-            exclude '**/tests/*'
-            include '**/*.class'
-        }.each { file -> sourceClassFiles.push(file) }
-    }
-}
+def classFilesArray = []
 
 task codeCoverageReport(type: JacocoReport) {
-    dependsOn(copyJavaClassFiles)
-    dependsOn(extractBallerinaClassFiles)
-    executionData executeDataDirectory
-    
-    additionalClassDirs files(sourceClassFiles)
+    dependsOn('udp-ballerina:extractBallerinaClassFiles')
 
+    subprojects.each{ subproject -> classFilesArray.push("${subproject.buildDir}/classes") }
+
+    executionData fileTree(project.rootDir.absolutePath).include("**/target/cache/tests_cache/coverage/ballerina.exec")
+    additionalClassDirs files(classFilesArray)
+    
+    subprojects.each {
+        sourceSets it.sourceSets.main
+    }
+    
     reports {
         xml.enabled = true
         html.enabled = true
@@ -142,3 +126,22 @@ task codeCoverageReport(type: JacocoReport) {
         true
     }
 }
+
+// task codeCoverageReport(type: JacocoReport) {
+//     dependsOn(copyJavaClassFiles)
+//     dependsOn(extractBallerinaClassFiles)
+//     executionData executeDataDirectory
+    
+//     additionalClassDirs files(sourceClassFiles)
+
+//     reports {
+//         xml.enabled = true
+//         html.enabled = true
+//         xml.destination = new File("${buildDir}/reports/jacoco/report.xml")
+//         html.destination = new File("${buildDir}/reports/jacoco/report.html")
+//     }
+
+//     onlyIf = {
+//         true
+//     }
+// }
